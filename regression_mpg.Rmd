@@ -1,0 +1,127 @@
+---
+title: "Fuel Consumption Analysis - Automatic vs. Manual Transmission"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+require(datasets)
+require(GGally)
+require(ggplot2)
+require(car)
+require(DescTools)
+```
+
+# Excecutive Summary
+
+This report is based on the *mtcars* dataset, which includes various properties of 32 cars. The report shows that the transmission type (ehwther it's automatic or manual), the car's weight and the time it takes for a car to pass a quarter of a mile - are all statistically significant factors which the car's fuel consumption rate depends on (measured in miles per gallon). Using linear regression, this report concludes with 95% certainity that holding the abovementioned factors constant, **a car with manual transmission performs better in terms of fuel efficiency than a car with automatic transmission, "saving" about 3 miles per gallon**.
+
+# The Data
+
+```{r load_data}
+data(mtcars)
+```
+
+```{r data_processing}
+mtcars$am <- factor(x = mtcars$am, labels = c("Automatic", "Manual"))
+mtcars$vs <- factor(x = mtcars$vs, labels = c("V", "S"))
+```
+
+The dataset consists of 32 cars, out of which 13 have Automatic Transmission ans 19 have Manual Transmission. 
+- 'mpg' stands for "miles per gallon", and measured in miles (numeric).
+- 'am' stands for Transmission Type, and measured in levels: automaric = 0; manual = 1 (factor). See appendix for full dataset description.
+
+## Is an automatic or manual transmission better for MPG?
+
+An indication of manual transmission efficiency, compared to automatic transmission, can be observed by looking at the mean values of mpg per transmission:
+
+```{r summary_statistics}
+summary(mtcars[mtcars$am == "Automatic",]$mpg)
+summary(mtcars[mtcars$am == "Manual",]$mpg)
+```
+
+Apart from Transmission Type some other properties of the cars are correlated with mpg (see appendix for pairs plot and correlation values). A regression model will be used to further establish such correlations and test it's statistical significance. 
+
+## Model Selection
+
+The simplest *MPG ~ Transmission Type* model might require some adjustments, in prder to control for other variables which might also have a statisticaly significant effect on MPG. Therefore, a stepwise model selection process was performed (see appendix for full description). Both *weight* and *1/4 mile time* were found to have a statisticaly significant effect on MPG. Therefore, these variables were added to the following regression model:
+
+## Results
+
+*effect of Transmission on mpg, controlling for the weight of the car, and 1/4 mile time*
+```{r results_wt+qsec}
+summary(lm(formula = mpg ~ am + wt + qsec, data = mtcars))
+```
+From this model, it can be concluded with 95% certainity that Manual transmission is more effective than Automatic transmission, controlling for both the weight of the car and speed of acceleration (1/4 mile time). This model explains 84% of the variance in fuel consumption (MPG).
+
+See appendix for model diagnostics.
+
+## Counclusion
+
+This report shows that controlling for both weight and 1/4 mile time of the car, it can be concluses with 95% certainty that *cars with Manual Transmission perform better in terms of fuel counsumpltion (about 3 MPG more) than cars with Automatic Transmission.
+
+## Appendix
+
+### Dataset Description
+
+```{r describe_dataset}
+str(cars)
+```
+
+### Pairs Plot
+
+```{r pairs_plot, message = FALSE}
+ggpairs(data = mtcars, lower = list(continuous = "smooth"))
+```
+
+### Simple Regression Model
+
+```{r basic_model}
+m1 <- lm(formula = mpg ~ am, data = mtcars)
+summary(m1)
+```
+
+### Model Selection 
+
+```{r step_function}
+m <- step(lm(formula = mpg ~ ., data = mtcars), trace = 0, steps = 1000)
+summary(m)
+```
+
+```{r model_selection}
+m2 <- update(object = m1, formula. = mpg ~ am + wt)
+m3 <- update(object = m2, formula. = mpg ~ am + wt + qsec)
+
+anova(m1, m2, m3)
+```
+
+It can be seen that when weight (wt) is added to the basic model, the new model performs significantly better. The same happens when adding 1/4 mile time (qsec) to the previous model.
+
+Adding more variables to the basic model can inflate it's variance:
+```{r variance_inflation_factors}
+vif(m2)
+vif(m3)
+```
+
+As can be seen, adding 1/4 mile time (qsec) to a model MPG ~ am + wt (our basic model + weight), causes variance inflation, but as VIF < 10 we'll consider it reasonable multicollinearity and move on with the last model.
+
+
+### Model Diagnostocs
+
+Residual plots for model: mpg ~ am + wt + qsec
+
+```{r residual_plots_m3}
+par(mfrow = c(2, 2))
+plot(m3)
+```
+No outstanding patters can be seen from the above plots, suggesting that significant data was not left out. 
+
+The normality of the residuals may look somewhat questionable, but Jarque-Berra test suggests normality (H0 of normality not rejected).
+
+```{r normality}
+JarqueBeraTest(m3$residuals)
+```
+
+### Code
+can be found on [Github] (https://github.com/polinas123/regression)
