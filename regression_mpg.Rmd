@@ -1,6 +1,7 @@
 ---
 title: "Fuel Consumption Analysis - Automatic vs. Manual Transmission"
-output: pdf_document
+output: 
+author: "Polina Sklyarevsky"
 ---
 
 ```{r setup, include=FALSE}
@@ -45,28 +46,31 @@ Apart from Transmission Type some other properties of the cars are correlated wi
 
 ## Model Selection
 
-The simplest *MPG ~ Transmission Type* model might require some adjustments, in prder to control for other variables which might also have a statisticaly significant effect on MPG. Therefore, a stepwise model selection process was performed (see appendix for full description). Both *weight* and *1/4 mile time* were found to have a statisticaly significant effect on MPG. Therefore, these variables were added to the following regression model:
+The simplest *MPG ~ Transmission Type* model might require some adjustments, in prder to control for other variables which might also have a statisticaly significant effect on MPG. Therefore, a stepwise model selection process was performed (see appendix for full description). Both *weight* and *1/4 mile time* were found to have a statisticaly significant effect on MPG. Therefore, these variables were added to the following regression model.
 
 ## Results
 
-*effect of Transmission on mpg, controlling for the weight of the car, and 1/4 mile time*
+**effect of Transmission on mpg, controlling for the weight of the car, and 1/4 mile time**
+
 ```{r results_wt+qsec}
 summary(lm(formula = mpg ~ am + wt + qsec, data = mtcars))
 ```
+
 From this model, it can be concluded with 95% certainity that Manual transmission is more effective than Automatic transmission, controlling for both the weight of the car and speed of acceleration (1/4 mile time). This model explains 84% of the variance in fuel consumption (MPG).
 
 See appendix for model diagnostics.
 
 ## Counclusion
 
-This report shows that controlling for both weight and 1/4 mile time of the car, it can be concluses with 95% certainty that *cars with Manual Transmission perform better in terms of fuel counsumpltion (about 3 MPG more) than cars with Automatic Transmission.
+This report shows that controlling for both weight and 1/4 mile time of the car, it can be concluses with 95% certainty that **cars with Manual Transmission perform better in terms of fuel counsumpltion (about 3 MPG more) than cars with Automatic Transmission**.
+
 
 ## Appendix
 
 ### Dataset Description
 
 ```{r describe_dataset}
-str(cars)
+str(mtcars)
 ```
 
 ### Pairs Plot
@@ -124,4 +128,4 @@ JarqueBeraTest(m3$residuals)
 ```
 
 ### Code
-can be found on [Github] (https://github.com/polinas123/regression)
+can be found here: https://github.com/polinas123/regression
